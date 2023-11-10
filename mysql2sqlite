@@ -189,7 +189,18 @@ aInc == 1 && /PRIMARY KEY|primary key/ { next }
   #   UPDATE Package SET LastUpdate = CURRENT_TIMESTAMP WHERE ActionId = old.ActionId;
   #   END
   gsub( /(ON|on) (UPDATE|update) (CURRENT_TIMESTAMP|current_timestamp)(\(\))?/, "" )
-  gsub( /(DEFAULT|default) (CURRENT_TIMESTAMP|current_timestamp)(\(\))?/, "DEFAULT current_timestamp")
+  # gsub( /(DEFAULT|default) (CURRENT_TIMESTAMP|current_timestamp)(\(\))?/, "DEFAULT current_timestamp")
+  # replace DEFAULT CURRENT_TIMESTAMP(0)
+  gsub( /(DEFAULT|default) (CURRENT_TIMESTAMP|current_timestamp)\(([0-9]+)\)/, "DEFAULT (datetime('now', 'localtime'))")
+  # replace DEFAULT CURRENT_TIMESTAMP
+  gsub( /(DEFAULT|default) (CURRENT_TIMESTAMP|current_timestamp)(\(\))?/, "DEFAULT (datetime('now', 'localtime'))")
+
+  # deal VARCHAR NOT NULL --》  NOT NULL DEFAULT ''
+  if (/^  `[^`]+` varchar[^,]+ NOT NULL/) {
+      gsub(/(NOT NULL)/, "NOT NULL DEFAULT ''")
+  }
+
+
   gsub( /(COLLATE|collate) [^ ]+ /, "" )
   gsub( /(ENUM|enum)[^)]+\)/, "text " )
   gsub( /(SET|set)\([^)]+\)/, "text " )
